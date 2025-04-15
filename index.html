@@ -14,7 +14,6 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
-      padding: 0;
     }
 
     .container {
@@ -30,11 +29,6 @@
     img.logo {
       max-width: 150px;
       margin-bottom: 1.5rem;
-    }
-
-    h1 {
-      margin-bottom: 1rem;
-      color: #333;
     }
 
     input[type="text"], select {
@@ -55,11 +49,10 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s ease;
     }
 
-    button:hover {
-      background-color: #218838;
+    button:disabled {
+      background-color: #999;
     }
 
     .footer {
@@ -67,26 +60,70 @@
       font-size: 0.85rem;
       color: #888;
     }
+
+    .error {
+      color: red;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- 👇 Add your logo file to the repo and change the src below -->
     <img src="logo.png" alt="Cafe Logo" class="logo" />
-
     <h1>Staff Attendance</h1>
-    <form action="https://script.google.com/macros/s/AKfycbykO_nLnpiKP_i3qKKLGk-UtYR_F8KrN2w2O9QPLxlC8-9yIetq6vWwZyDZ1Ii0c3RI/exec" method="get">
+
+    <form id="attendanceForm" action="https://script.google.com/macros/s/AKfycbykO_nLnpiKP_i3qKKLGk-UtYR_F8KrN2w2O9QPLxlC8-9yIetq6vWwZyDZ1Ii0c3RI/exec" method="get">
       <input type="text" name="name" placeholder="Enter your name" required />
-      
       <select name="action">
         <option value="In">Sign In</option>
         <option value="Out">Sign Out</option>
       </select>
-
-      <button type="submit">Submit</button>
+      <button type="submit" id="submitBtn" disabled>Submit</button>
+      <div class="error" id="locationError"></div>
     </form>
 
-    <div class="footer">© 2025 Café Staff Portal</div>
+    <div class="footer">Location-verified attendance</div>
   </div>
+
+  <script>
+    // Set your café coordinates
+    const cafeLat = -33.866600;  // example: Sydney
+    const cafeLng = 151.002757;
+    
+    const allowedDistance = 0.4; // in kilometers (100 meters)
+
+    // Calculate distance using Haversine formula
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const toRad = angle => angle * (Math.PI / 180);
+      const R = 6371; // Earth radius in km
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon/2)**2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+        const distance = getDistance(userLat, userLng, cafeLat, cafeLng);
+
+        if (distance <= allowedDistance) {
+          document.getElementById("submitBtn").disabled = false;
+        } else {
+          document.getElementById("locationError").innerText =
+            "⚠️ You must be at the café location to submit attendance.";
+        }
+      },
+      error => {
+        document.getElementById("locationError").innerText =
+          "⚠️ Location access is required to submit attendance.";
+      }
+    );
+  </script>
 </body>
 </html>
