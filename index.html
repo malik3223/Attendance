@@ -78,7 +78,10 @@
       <select name="action">
         <option value="In">Sign In</option>
         <option value="Out">Sign Out</option>
+        <option value="Break"> Break </option>
       </select>
+      <input type="hidden" name="latitude" id="latitude" />
+      <input type="hidden" name="longitude" id="longitude" />
       <button type="submit" id="submitBtn" disabled>Submit</button>
       <div class="error" id="locationError"></div>
     </form>
@@ -108,23 +111,29 @@
     }
 
     navigator.geolocation.getCurrentPosition(
-      position => {
-        const userLat = position.coords.latitude;
-        const userLng = position.coords.longitude;
-        const distance = getDistance(userLat, userLng, cafeLat, cafeLng);
+  position => {
+    const userLat = position.coords.latitude;
+    const userLng = position.coords.longitude;
 
-        if (distance <= allowedDistance) {
-          document.getElementById("submitBtn").disabled = false;
-        } else {
-          document.getElementById("locationError").innerText =
-            "⚠️ You must be at the café location to submit attendance.";
-        }
-      },
-      error => {
-        document.getElementById("locationError").innerText =
-          "⚠️ Location access is required to submit attendance.";
-      }
-    );
+    // Set the hidden input values
+    document.getElementById("latitude").value = userLat;
+    document.getElementById("longitude").value = userLng;
+
+    const distance = getDistance(userLat, userLng, cafeLat, cafeLng);
+
+    if (distance <= allowedDistance) {
+      document.getElementById("submitBtn").disabled = false;
+    } else {
+      document.getElementById("locationError").innerText =
+        "⚠️ You must be at the café location to submit attendance.";
+    }
+  },
+  error => {
+    document.getElementById("locationError").innerText =
+      "⚠️ Location access is required to submit attendance.";
+  }
+);
+
   </script>
 </body>
 </html>
